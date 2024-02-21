@@ -75,7 +75,7 @@ function theme_makie!()
         Legend=(
             titlesize=15,
             labelsize=15,
-            bgcolor="#E6E6EF",
+            backgroundcolor="#E6E6EF",
         ),
         Lines=(
             linewidth=2,
