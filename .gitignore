@@ -91,6 +91,7 @@ Manifest.toml
 # Directories to ignore
 */*/tmp/*
 code/processing/*/output/
+code/processing/*/*/output/
 data/*/*
 *.jld2
 
