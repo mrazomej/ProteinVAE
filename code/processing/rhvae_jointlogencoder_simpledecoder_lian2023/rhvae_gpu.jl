@@ -18,23 +18,26 @@ import DataFrames as DF
 import Flux
 import AutoEncode
 
+import Random
+Random.seed!(42)
+
 ## =============================================================================
 
 # Define model hyperparameters
 
 # Define latent dimension
-latent_dim = 2
+latent_dim = 3
 # Define number of epochs
-n_epoch = 100
+n_epoch = 300
 # Define number of samples in batch
-n_batch = 32
+n_batch = 128
 # Define learning rate
-η = 1.0f-3
+η = 1E-3
 
 # Define RHVAE hyper-parameters
 T = 0.8f0 # Temperature
 λ = 1.0f-2 # Regularization parameter
-n_centroids = 25 # Number of centroids
+n_centroids = 128 # Number of centroids
 
 # Define loss function hyper-parameters
 K = 5 # Number of leapfrog steps
@@ -97,17 +100,17 @@ encoder_mlp = Flux.Chain(
     # Flatten input
     x -> Flux.flatten(x),
     # Encoder first layer
-    Flux.Dense(n_input => n_neuron, Flux.leakyrelu),
+    Flux.Dense(n_input => n_neuron, Flux.relu),
     # Add dropout layer
-    Flux.Dropout(0.3),
+    # Flux.Dropout(0.3),
 
     # Enconder second layer
-    Flux.Dense(n_neuron => n_neuron, Flux.leakyrelu),
+    Flux.Dense(n_neuron => n_neuron, Flux.relu),
     # Add normalization layer
     Flux.LayerNorm(n_neuron),
 
     # Encoder third layer
-    Flux.Dense(n_neuron => n_neuron, Flux.leakyrelu),
+    Flux.Dense(n_neuron => n_neuron, Flux.relu),
 )
 
 # Define encoder µ and log(σ) layers
@@ -125,17 +128,17 @@ decoder = AutoEncode.SimpleDecoder(
     # Define decoder mlp
     Flux.Chain(
         # Decoder first layer
-        Flux.Dense(latent_dim => n_neuron, Flux.leakyrelu),
+        Flux.Dense(latent_dim => n_neuron, Flux.relu),
         # Add normalization layer
         Flux.LayerNorm(n_neuron),
 
         # Decoder second layer
-        Flux.Dense(n_neuron => n_neuron, Flux.leakyrelu),
+        Flux.Dense(n_neuron => n_neuron, Flux.relu),
         # Add Dropout layer
-        Flux.Dropout(0.3),
+        # Flux.Dropout(0.3),
 
         # Decoder third layer
-        Flux.Dense(n_neuron => n_neuron, Flux.leakyrelu),
+        Flux.Dense(n_neuron => n_neuron, Flux.relu),
         # Add normalization layer
         Flux.LayerNorm(n_neuron),
 
@@ -158,17 +161,17 @@ metric_mlp = Flux.Chain(
     # Reshape input
     x -> Flux.flatten(x),
     # Metric first layer
-    Flux.Dense(n_input => n_neuron, Flux.leakyrelu),
+    Flux.Dense(n_input => n_neuron, Flux.relu),
     # Add normalization layer
     Flux.LayerNorm(n_neuron),
 
     # Metric second layer
-    Flux.Dense(n_neuron => n_neuron, Flux.leakyrelu),
+    Flux.Dense(n_neuron => n_neuron, Flux.relu),
     # Add normalization layer
     Flux.LayerNorm(n_neuron),
 
     # Metric third layer
-    Flux.Dense(n_neuron => n_neuron, Flux.leakyrelu),
+    Flux.Dense(n_neuron => n_neuron, Flux.relu),
 )
 
 # Define diag and lower layers
@@ -234,6 +237,8 @@ for epoch in 1:n_epoch
         AutoEncode.RHVAEs.train!(
             rhvae, x, opt_rhvae; loss_kwargs=loss_kwargs, verbose=true
         )
+        # Print MSE
+        println("MSE: $(Flux.mse(rhvae(x; loss_kwargs...).µ, x))")
     end # for train_loader
     # Save checkpoint
     JLD2.jldsave(

@@ -36,7 +36,7 @@ latent_dim = 2
 # Define RHVAE hyper-parameters
 T = 0.8f0 # Temperature
 λ = 1.0f-2 # Regularization parameter
-n_centroids = 128 # Number of centroids
+n_centroids = 512 # Number of centroids
 
 
 ## =============================================================================

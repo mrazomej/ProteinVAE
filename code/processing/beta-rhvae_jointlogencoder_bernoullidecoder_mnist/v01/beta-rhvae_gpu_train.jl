@@ -38,7 +38,7 @@ K = 5 # Number of leapfrog steps
 βₒ = 0.3f0 # Initial temperature for tempering
 
 # Define T values
-T_vals = Float32.([0.2, 0.4, 0.6, 0.8])
+T_vals = Float32.([0.3, 0.4, 0.5, 0.6])
 
 # Define ELBO prefactors
 logp_prefactor = [10.0f0, 1.0f0, 1.0f0]

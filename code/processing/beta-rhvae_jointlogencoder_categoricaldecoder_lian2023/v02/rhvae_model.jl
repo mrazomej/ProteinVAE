@@ -36,8 +36,6 @@ latent_dim = 2
 # Define RHVAE hyper-parameters
 T = 0.8f0 # Temperature
 λ = 1.0f-2 # Regularization parameter
-n_centroids = 128 # Number of centroids
-
 
 ## =============================================================================
 
@@ -67,11 +65,6 @@ seq_onehot = Float32.(Array(seq_onehot))
 
 # Extract sequence length, number of unique characters, and number of sequences
 n_char, seq_len, n_seq = size(seq_onehot)
-
-# Select centroids via k-means
-centroids_data = AutoEncode.utils.centroids_kmedoids(
-    seq_onehot, n_centroids, Distances.Hamming()
-)
 
 ## =============================================================================
 
@@ -162,7 +155,7 @@ metric_chain = AutoEncode.RHVAEs.MetricChain(metric_mlp, diag, lower)
 println("Define RHVAE...\n")
 
 rhvae = AutoEncode.RHVAEs.RHVAE(
-    encoder * decoder, metric_chain, centroids_data, T, λ
+    encoder * decoder, metric_chain, seq_onehot, T, λ
 )
 
 ## =============================================================================
