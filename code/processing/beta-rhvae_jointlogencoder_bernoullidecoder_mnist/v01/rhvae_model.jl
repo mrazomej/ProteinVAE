@@ -2,7 +2,7 @@
 println("Loading packages...")
 
 # Import project package
-import AutoEncode
+import AutoEncoderToolkit as AET
 
 # Import ML libraries
 import Flux
@@ -55,8 +55,19 @@ labels_train = labels_filt[1:n_data]
 
 ## =============================================================================
 
-# Select centroids via k-means
-centroids_data = AutoEncode.utils.centroids_kmedoids(data_train, n_centroids)
+# Define threshold for binarization
+thresh = 0.5
+
+# Binarize training data
+train_data = Float32.(train_data .> thresh)
+
+# Binarize validation data
+val_data = Float32.(val_data .> thresh)
+
+## =============================================================================
+
+# Select centroids via k-medoids
+centroids_data = AET.utils.centroids_kmedoids(data_train, n_centroids)
 
 ## =============================================================================
 
@@ -79,7 +90,7 @@ conv_layers = Flux.Chain(
         stride=2, pad=1
     ),
     # Flatten the output
-    AutoEncode.Flatten()
+    AET.Flatten()
 )
 
 # Define layers for µ and log(σ)
@@ -87,7 +98,7 @@ conv_layers = Flux.Chain(
 logσ_layer = Flux.Dense(n_channels_init * 2 * 7 * 7, n_latent, Flux.identity)
 
 # build encoder
-encoder = AutoEncode.JointLogEncoder(conv_layers, µ_layer, logσ_layer)
+encoder = AET.JointLogEncoder(conv_layers, µ_layer, logσ_layer)
 
 ## =============================================================================
 
@@ -98,7 +109,7 @@ deconv_layers = Flux.Chain(
     # Define linear layer out of latent space
     Flux.Dense(n_latent => n_channels_init * 2 * 7 * 7, Flux.identity),
     # Unflatten input using custom Reshape layer
-    AutoEncode.Reshape(7, 7, n_channels_init * 2, :),
+    AET.Reshape(7, 7, n_channels_init * 2, :),
     # First transposed convolutional layer
     Flux.ConvTranspose(
         (4, 4), n_channels_init * 2 => n_channels_init, Flux.relu;
@@ -114,7 +125,7 @@ deconv_layers = Flux.Chain(
 )
 
 # Define decoder
-decoder = AutoEncode.BernoulliDecoder(deconv_layers)
+decoder = AET.BernoulliDecoder(deconv_layers)
 
 
 println("Combining encoder and decoder...")
@@ -126,7 +137,7 @@ println("Defining Metric MLP...")
 # Define convolutional layers
 mlp_conv_layers = Flux.Chain(
     # Flatten the input using custom Flatten layer
-    AutoEncode.Flatten(),
+    AET.Flatten(),
     # First layer
     Flux.Dense(28 * 28 => 400, Flux.relu),
     # Second layer
@@ -143,11 +154,11 @@ lower = Flux.Dense(
 )
 
 # Build metric chain
-metric_chain = AutoEncode.RHVAEs.MetricChain(mlp_conv_layers, diag, lower)
+metric_chain = AET.RHVAEs.MetricChain(mlp_conv_layers, diag, lower)
 
 println("Building RHVAE model...")
 
-rhvae = AutoEncode.RHVAEs.RHVAE(
+rhvae = AET.RHVAEs.RHVAE(
     vae, metric_chain, centroids_data, T, λ
 )
 

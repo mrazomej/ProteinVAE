@@ -104,6 +104,16 @@ val_data = Float32.(
 )
 val_labels = labels_filt[n_data+1:n_data+n_val]
 
+## =============================================================================
+
+# Define threshold for binarization
+thresh = 0.5
+
+# Binarize training data
+train_data = Float32.(train_data .> thresh)
+
+# Binarize validation data
+val_data = Float32.(val_data .> thresh)
 
 ## =============================================================================
 
